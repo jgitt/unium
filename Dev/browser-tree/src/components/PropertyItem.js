@@ -1,5 +1,5 @@
 import { h } from 'preact';
-import { useEffect, useState } from 'preact/hooks';
+import { useCallback, useEffect, useState } from 'preact/hooks';
 import styled from 'styled-components';
 import ky from 'ky';
 import ComponentList from './ComponentList';
@@ -8,6 +8,7 @@ import PropertyList from './PropertyList';
 
 
 const PropertyItem = ({ name, value, queryPath, handleChange: handleChangeOverride, handleSubmit: handleSubmitOverride }) => {
+    const [savedValue, setSavedValue] = useState(value);
     const [newValue, setNewValue] = useState(value);
     // this key forces the fields to update when new data is returned. this happens when an invalid value is submitted, which then
     // responds with the old value.
@@ -19,15 +20,33 @@ const PropertyItem = ({ name, value, queryPath, handleChange: handleChangeOverri
         setNewValue(value);
     }, [value]);
 
-    const handleSubmit = handleSubmitOverride || (async (e) => {
-        e.preventDefault();
+    useEffect(() => {
+        if (typeof value == 'boolean' && savedValue != newValue) submit();
+    }, [newValue]);
+
+    const submit = async () => {
         const encodedValue = isValueAnObject ? JSON.stringify(newValue) : newValue;
-        const url = `${queryPath}.${name}=${encodedValue}`;
+        
+        const nameValueSet = name == 'activeInHierarchy' ? `SetActive(${encodedValue})` : `${name}=${encodedValue}`;
+        const url = `${queryPath}.${nameValueSet}`;
+
         console.log('update properties', url);
         const json = await ky.get(url).json();
         console.log('update done', url, json);
         setItemKey(Math.random());
-        setNewValue(json[0]);
+
+        if (typeof value == 'boolean') {
+            setSavedValue(newValue);
+        }
+        else {
+            setSavedValue(json[0]);
+            setNewValue(json[0]);
+        }
+    };
+
+    const handleSubmit = handleSubmitOverride || ((e) => {
+        e.preventDefault();
+        submit();
     });
 
     const handleChange = handleChangeOverride || ((e) => {
@@ -38,8 +57,14 @@ const PropertyItem = ({ name, value, queryPath, handleChange: handleChangeOverri
             const updatedValue = Object.assign({}, newValue, { [e.target.name]: isValueANumber ? parseFloat(e.target.value) : e.targetValue });
             setNewValue(updatedValue);
         }
+        else if (typeof value == 'boolean') {
+            setNewValue(!newValue);
+        }
+        else if (typeof value == 'number') {
+            setNewValue(parseFloat(e.target.value));
+        }
         else {
-            setNewValue(typeof value == 'number' ? parseFloat(e.target.value) : e.target.value);
+            setNewValue(e.target.value);
         }
     });
 

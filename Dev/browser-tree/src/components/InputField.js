@@ -13,7 +13,15 @@ const Form = styled.form`
 const InputField = ({ name, value, handleSubmit, handleChange }) => {
 
 	return <Root>
-		<Form onSubmit={handleSubmit}><input onChange={handleChange} type="text" name={name} defaultValue={value} /></Form>
+		<Form onSubmit={handleSubmit}>
+            <input
+                onChange={handleChange}
+                type={typeof value == 'boolean' ? 'checkbox' : 'text'}
+                name={name}
+                checked={value}
+                defaultValue={value}
+            />
+        </Form>
 	</Root>
 }
 
