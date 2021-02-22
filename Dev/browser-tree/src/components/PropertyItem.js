@@ -8,23 +8,16 @@ import PropertyList from './PropertyList';
 
 
 const PropertyItem = ({ name, value, queryPath, handleChange: handleChangeOverride, handleSubmit: handleSubmitOverride }) => {
-	const [isExpanded, setExpanded] = useState(false);
-	const [isPropsShown, setIsPropsShown] = useState(false);
     const [newValue, setNewValue] = useState(value);
+    // this key forces the fields to update when new data is returned. this happens when an invalid value is submitted, which then
+    // responds with the old value.
+    const [itemKey, setItemKey] = useState(Math.random());
 
     const isValueAnObject = typeof value == 'object';
 
     useEffect(() => {
         setNewValue(value);
     }, [value]);
-
-	const handleExpandClick = () => {
-		setExpanded(!isExpanded);
-	}
-
-	const handleClick = () => {
-		setIsPropsShown(!isPropsShown);
-	}
 
     const handleSubmit = handleSubmitOverride || (async (e) => {
         e.preventDefault();
@@ -33,6 +26,8 @@ const PropertyItem = ({ name, value, queryPath, handleChange: handleChangeOverri
         console.log('update properties', url);
         const json = await ky.get(url).json();
         console.log('update done', url, json);
+        setItemKey(Math.random());
+        setNewValue(json[0]);
     });
 
     const handleChange = handleChangeOverride || ((e) => {
@@ -54,10 +49,10 @@ const PropertyItem = ({ name, value, queryPath, handleChange: handleChangeOverri
         valueComponent = <ComponentList componentList={value} queryPath={queryPath} />;
     }
     else if (isValueAnObject) {
-        valueComponent = <PropertyList queryPath={queryPath} data={newValue} handleSubmit={handleSubmit} handleChange={handleChange} />
+        valueComponent = <PropertyList key={itemKey} queryPath={queryPath} data={newValue} handleSubmit={handleSubmit} handleChange={handleChange} />
     }
     else {
-        valueComponent = <InputField name={name} value={newValue} handleSubmit={handleSubmit} handleChange={handleChange} />;
+        valueComponent = <InputField key={itemKey} name={name} value={newValue} handleSubmit={handleSubmit} handleChange={handleChange} />;
     }
 
 	return <li>
