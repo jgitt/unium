@@ -28,7 +28,7 @@ const PropertyList = ({ data: existingData, queryPath, handleSubmit, handleChang
 	const items = [];
 	
 	Object.keys(data).forEach((propName) => {
-		if (propName == 'children') {
+		if (propName == 'children' || propName == 'name') {
 			return null;
 		}
 		else {
