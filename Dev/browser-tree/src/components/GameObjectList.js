@@ -11,19 +11,16 @@ const GameObjectList = ({ queryPath }) => {
 
 		async function fetchData() {
 			const url = queryPath;
-
+            console.log('fetching gameobjects', url);
 			const json = await ky.get(`${url}/*`).json();
-
-			console.log('>>', url, json);
-
 			setData(json);
 		}
 
 		fetchData();
 	}, []);
 
-	const items = data.map((gameObjectData) => {
-		return <GameObjectItem data={gameObjectData} queryPath={queryPath} />
+	const items = data.map((gameObjectData, index) => {
+		return <GameObjectItem data={gameObjectData} queryPath={queryPath} goIndex={index} />
 	});
 
 	return (

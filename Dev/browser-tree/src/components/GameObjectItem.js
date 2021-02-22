@@ -10,7 +10,7 @@ const GameObjectItemStyled = styled.button`
 	cursor: pointer;
 `;
 
-const GameObjectItem = ({ data, queryPath }) => {
+const GameObjectItem = ({ data, queryPath, goIndex }) => {
 	const [isExpanded, setExpanded] = useState(false);
 	const [isPropsShown, setIsPropsShown] = useState(false);
 
@@ -22,6 +22,10 @@ const GameObjectItem = ({ data, queryPath }) => {
 		setIsPropsShown(!isPropsShown);
 	}
 
+    // technically, the name of the game object isn't required (index is enough), however leaving it there
+    // as it doesn't seem to have an affect and it also makes it easier to identify
+    const updatedQueryPath = `${queryPath}/[${goIndex}]${data.name}`;
+
 	return <li>
 		<ExpandCollapseButton
 			hasChildren={data.children.length > 0}
@@ -29,8 +33,8 @@ const GameObjectItem = ({ data, queryPath }) => {
 			onClick={handleExpandClick}
 		/>
 		<GameObjectItemStyled onClick={handleClick}>{data.name}</GameObjectItemStyled>
-		{isPropsShown && <PropertyList queryPath={`${queryPath}/${data.name}`} />}
-		{isExpanded && <GameObjectList queryPath={`${queryPath}/${data.name}`} />}
+		{isPropsShown && <PropertyList queryPath={updatedQueryPath} />}
+		{isExpanded && <GameObjectList queryPath={updatedQueryPath} />}
 	</li>
 }
 
