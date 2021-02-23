@@ -1,6 +1,7 @@
 import { h } from 'preact';
 import styled from 'styled-components';
 import GameObjectList from './components/GameObjectList';
+import './style';
 
 
 const Root = styled.ul`
