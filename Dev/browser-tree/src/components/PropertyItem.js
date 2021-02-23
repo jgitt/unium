@@ -5,9 +5,12 @@ import ky from 'ky';
 import ComponentList from './ComponentList';
 import InputField from './InputField';
 import PropertyList from './PropertyList';
+import ExpandCollapseButton from './ExpandCollapseButton';
+import { getDeepValueFromObject, getPathParts, setDeepValueInObject } from '../utils/gqlUtils';
 
 
-const PropertyItem = ({ name, value, queryPath, handleChange: handleChangeOverride, handleSubmit: handleSubmitOverride }) => {
+const PropertyItem = ({ name, value, queryPath, handleChange: handleChangeOverride, handleSubmit: handleSubmitOverride, handleFetchedData: handleFetchedDataOverride }) => {
+    const [isExpanded, setIsExpanded] = useState(false);
     const [savedValue, setSavedValue] = useState(value);
     const [newValue, setNewValue] = useState(value);
     // this key forces the fields to update when new data is returned. this happens when an invalid value is submitted, which then
@@ -25,8 +28,21 @@ const PropertyItem = ({ name, value, queryPath, handleChange: handleChangeOverri
     }, [newValue]);
 
     const submit = async () => {
-        const encodedValue = isValueAnObject ? JSON.stringify(newValue) : newValue;
-        
+        let encodedValue = newValue;
+
+        if (isValueAnObject) {
+            // remove values that are just empty objects -- empty objects are assumed to be data that has not been retrieved yet,
+            // so no need to update them
+            const updatedNewValue = JSON.parse(JSON.stringify(newValue));
+            Object.keys(updatedNewValue).forEach(key => {
+                if (typeof updatedNewValue[key] == 'object' && Object.keys(updatedNewValue[key]).length < 1) {
+                    delete updatedNewValue[key];
+                }
+            });
+
+            encodedValue = JSON.stringify(updatedNewValue);
+        }
+
         const nameValueSet = name == 'activeInHierarchy' ? `SetActive(${encodedValue})` : `${name}=${encodedValue}`;
         const url = `${queryPath}.${nameValueSet}`;
 
@@ -44,6 +60,18 @@ const PropertyItem = ({ name, value, queryPath, handleChange: handleChangeOverri
         }
     };
 
+    const handleFetchedData = handleFetchedDataOverride || ((data, ancestorPropsString) => {
+        const mergedData = JSON.parse(JSON.stringify(savedValue));
+
+        // this retrieves the parent object (which is assumed to be empty), so that the incoming data ("data") can
+        // be merged into it
+        let parentObject = getDeepValueFromObject({ [name]: mergedData }, ancestorPropsString);
+        Object.assign(parentObject, data);
+
+        setSavedValue(mergedData);
+        setNewValue(mergedData);
+    });
+
     const handleSubmit = handleSubmitOverride || ((e) => {
         e.preventDefault();
         submit();
@@ -53,9 +81,12 @@ const PropertyItem = ({ name, value, queryPath, handleChange: handleChangeOverri
         e.preventDefault();
 
         if (isValueAnObject) {
-            const isValueANumber = typeof value[e.target.name] == 'number';
-            const updatedValue = Object.assign({}, newValue, { [e.target.name]: isValueANumber ? parseFloat(e.target.value) : e.targetValue });
-            setNewValue(updatedValue);
+            const mergedData = JSON.parse(JSON.stringify(newValue));
+    
+            const isValueANumber = getDeepValueFromObject({ [name]: newValue }, e.target.name);
+            setDeepValueInObject({ [name]: mergedData }, e.target.name, isValueANumber ? parseFloat(e.target.value) : e.targetValue);
+
+            setNewValue(mergedData);
         }
         else if (typeof value == 'boolean') {
             setNewValue(!newValue);
@@ -68,20 +99,54 @@ const PropertyItem = ({ name, value, queryPath, handleChange: handleChangeOverri
         }
     });
 
+    const handleExpandClick = (e) => {
+        setIsExpanded(!isExpanded);
+    }
+
     let valueComponent;
+    let isExpandable = false;
 
     if (name == 'components') {
         valueComponent = <ComponentList componentList={value} queryPath={queryPath} />;
     }
     else if (isValueAnObject) {
-        valueComponent = <PropertyList key={itemKey} queryPath={queryPath} data={newValue} handleSubmit={handleSubmit} handleChange={handleChange} />
+        const newQueryPath = `${queryPath}.${name}`;
+        if (Object.keys(value).length < 1) {
+            // this assumes that an empty object means that the data wasn't fetched with the query to the component, so will let PropertyList do the fetching
+            isExpandable = true;
+
+            if (isExpanded) {
+                valueComponent = <PropertyList
+                    key={itemKey}
+                    queryPath={newQueryPath}
+                    data={newValue}
+                    handleSubmit={handleSubmit}
+                    handleChange={handleChange}
+                    handleFetchedData={handleFetchedData}
+                />;
+            }
+            else valueComponent = null;
+        }
+        else {
+            valueComponent = <PropertyList
+                key={itemKey}
+                queryPath={newQueryPath}
+                data={newValue}
+                handleSubmit={handleSubmit}
+                handleChange={handleChange}
+            />;
+        }
     }
     else {
-        valueComponent = <InputField key={itemKey} name={name} value={newValue} handleSubmit={handleSubmit} handleChange={handleChange} />;
+        let propertyPath = getPathParts(queryPath).properties;
+        propertyPath = `${propertyPath && propertyPath + '.'}${name}`;
+        valueComponent = <InputField key={itemKey} name={propertyPath} value={newValue} handleSubmit={handleSubmit} handleChange={handleChange} />;
     }
 
 	return <li>
-		<div>{name}: {valueComponent}</div>
+		<div>
+            {<ExpandCollapseButton isExpanded={isExpanded} hasChildren={isExpandable} onClick={handleExpandClick} />}{name}: {valueComponent}
+        </div>
 	</li>
 }
 
