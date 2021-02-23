@@ -5,12 +5,10 @@ import ky from 'ky';
 import ComponentList from './ComponentList';
 import InputField from './InputField';
 import PropertyList from './PropertyList';
-import ExpandCollapseButton from './ExpandCollapseButton';
 import { getDeepValueFromObject, getPathParts, setDeepValueInObject } from '../utils/gqlUtils';
 
 
 const PropertyItem = ({ name, value, queryPath, handleChange: handleChangeOverride, handleSubmit: handleSubmitOverride, handleFetchedData: handleFetchedDataOverride }) => {
-    const [isExpanded, setIsExpanded] = useState(false);
     const [savedValue, setSavedValue] = useState(value);
     const [newValue, setNewValue] = useState(value);
     // this key forces the fields to update when new data is returned. this happens when an invalid value is submitted, which then
@@ -99,12 +97,7 @@ const PropertyItem = ({ name, value, queryPath, handleChange: handleChangeOverri
         }
     });
 
-    const handleExpandClick = (e) => {
-        setIsExpanded(!isExpanded);
-    }
-
     let valueComponent;
-    let isExpandable = false;
 
     if (name == 'components') {
         valueComponent = <ComponentList componentList={value} queryPath={queryPath} />;
@@ -113,19 +106,14 @@ const PropertyItem = ({ name, value, queryPath, handleChange: handleChangeOverri
         const newQueryPath = `${queryPath}.${name}`;
         if (Object.keys(value).length < 1) {
             // this assumes that an empty object means that the data wasn't fetched with the query to the component, so will let PropertyList do the fetching
-            isExpandable = true;
-
-            if (isExpanded) {
-                valueComponent = <PropertyList
-                    key={itemKey}
-                    queryPath={newQueryPath}
-                    data={newValue}
-                    handleSubmit={handleSubmit}
-                    handleChange={handleChange}
-                    handleFetchedData={handleFetchedData}
-                />;
-            }
-            else valueComponent = null;
+            valueComponent = <PropertyList
+                key={itemKey}
+                queryPath={newQueryPath}
+                data={newValue}
+                handleSubmit={handleSubmit}
+                handleChange={handleChange}
+                handleFetchedData={handleFetchedData}
+            />;
         }
         else {
             valueComponent = <PropertyList
@@ -145,7 +133,7 @@ const PropertyItem = ({ name, value, queryPath, handleChange: handleChangeOverri
 
 	return <li>
 		<div>
-            {<ExpandCollapseButton isExpanded={isExpanded} hasChildren={isExpandable} onClick={handleExpandClick} />}{name}: {valueComponent}
+            {name}: {valueComponent}
         </div>
 	</li>
 }
