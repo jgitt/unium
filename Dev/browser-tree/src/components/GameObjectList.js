@@ -4,6 +4,12 @@ import styled from 'styled-components';
 import ky from 'ky';
 import GameObjectItem from './GameObjectItem';
 
+const Root = styled.ul`
+	list-style-type: none;
+	margin: 0;
+	padding: 10px 20px;
+`;
+
 const GameObjectList = ({ queryPath }) => {
 	const [data, setData] = useState([]);
 
@@ -24,9 +30,9 @@ const GameObjectList = ({ queryPath }) => {
 	});
 
 	return (
-		<ul>
+		<Root>
 			{items}
-		</ul>
+		</Root>
 	);
 }
 

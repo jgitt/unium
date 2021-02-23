@@ -8,6 +8,25 @@ import PropertyList from './PropertyList';
 import { getDeepValueFromObject, getPathParts, setDeepValueInObject } from '../utils/gqlUtils';
 
 
+const Root = styled.li`
+    padding: 5px;
+`;
+
+const Label = styled.span`
+    display: inline-block;
+    width: 120px;
+    text-align: right;
+    vertical-align: top;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+`;
+
+const Value = styled.span`
+    vertical-align: middle;
+    margin-left: 10px;
+`;
+
 const PropertyItem = ({ name, value, queryPath, handleChange: handleChangeOverride, handleSubmit: handleSubmitOverride, handleFetchedData: handleFetchedDataOverride }) => {
     const [savedValue, setSavedValue] = useState(value);
     const [newValue, setNewValue] = useState(value);
@@ -131,11 +150,9 @@ const PropertyItem = ({ name, value, queryPath, handleChange: handleChangeOverri
         valueComponent = <InputField key={itemKey} name={propertyPath} value={newValue} handleSubmit={handleSubmit} handleChange={handleChange} />;
     }
 
-	return <li>
-		<div>
-            {name}: {valueComponent}
-        </div>
-	</li>
+	return <Root>
+        <Label title={name}>{name}</Label><Value>{valueComponent}</Value>
+	</Root>
 }
 
 export default PropertyItem;

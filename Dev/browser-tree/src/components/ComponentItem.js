@@ -5,9 +5,18 @@ import PropertyList from './PropertyList';
 
 
 const Root = styled.li`
+	width: 100%;	
+	margin: 0 5px 5px;
 `;
 
 const Title = styled.button`
+	background-color: #CCC;
+	padding: 5px;
+	text-align: left;
+	width: 100%;
+	height: 100%;
+	border: none;
+	cursor: pointer;
 `;
 
 const ComponentItem = ({ name, queryPath }) => {
@@ -21,8 +30,10 @@ const ComponentItem = ({ name, queryPath }) => {
         <PropertyList queryPath={`${queryPath}.${name}`} />
     );
 
-	return <Root>
-		<Title onClick={handleClick}>{name}</Title>
+	const propsExpandedIcon = isPropsShown ? <span>&#9662;</span> : <span>&#9656;</span>;
+
+	return <Root onClick={handleClick}>
+		<Title>{propsExpandedIcon} {name}</Title>
         {properties}
 	</Root>
 }

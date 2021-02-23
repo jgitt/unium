@@ -5,21 +5,13 @@ import ComponentItem from './ComponentItem';
 
 
 const Root = styled.ul`
+	list-style-type: none;
+	margin: 0;
+	padding: 0;
+	display: inline-block;
 `;
 
 const ComponentList = ({ componentList, queryPath }) => {
-	const [isExpanded, setExpanded] = useState(false);
-	const [isPropsShown, setIsPropsShown] = useState(false);
-
-	const handleExpandClick = () => {
-		setExpanded(!isExpanded);
-	}
-
-	const handleClick = () => {
-		setIsPropsShown(!isPropsShown);
-	}
-
-
 	return <Root>
 		{componentList.map(componentName => <ComponentItem name={componentName} queryPath={queryPath} />)}
 	</Root>
