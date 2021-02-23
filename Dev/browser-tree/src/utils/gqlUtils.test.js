@@ -62,6 +62,12 @@ describe('gqlUtils', () => {
                 .toStrictEqual('bee');
         });
 
+        test('should return deep value from object when value is 0`', () => {
+            const dataObject = { position: { x: 0, y: 0, z: 0 } };
+            expect(gqlUtils.getDeepValueFromObject(dataObject, 'position.x'))
+                .toStrictEqual(0);
+        });
+
         test('should value not found', () => {
             const dataObject = { x: 'ex', y: 'why', z: { a: 'ay', b: 'bee' } };
             expect(gqlUtils.getDeepValueFromObject(dataObject, 'z.b.r.z'))

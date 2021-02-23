@@ -83,7 +83,7 @@ const PropertyItem = ({ name, value, queryPath, handleChange: handleChangeOverri
         if (isValueAnObject) {
             const mergedData = JSON.parse(JSON.stringify(newValue));
     
-            const isValueANumber = getDeepValueFromObject({ [name]: newValue }, e.target.name);
+            const isValueANumber = typeof getDeepValueFromObject({ [name]: newValue }, e.target.name) == 'number';
             setDeepValueInObject({ [name]: mergedData }, e.target.name, isValueANumber ? parseFloat(e.target.value) : e.targetValue);
 
             setNewValue(mergedData);

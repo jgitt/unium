@@ -27,7 +27,7 @@ export const getDeepValueFromObject = (dataObject, keyPath) => {
     let currentValue = dataObject;
 
     for (let i in keyPathParts) {
-        if (currentValue[keyPathParts[i]]) {
+        if (typeof currentValue == 'object' && keyPathParts[i] in currentValue) {
             currentValue = currentValue[keyPathParts[i]];
         }
         else {
